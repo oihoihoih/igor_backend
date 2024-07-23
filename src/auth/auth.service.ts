@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './entities/user.entity';
 import { MongoServerError } from 'mongodb';
+import * as bcryptjs from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -12,11 +13,19 @@ export class AuthService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const newUser = new this.userModel(createUserDto);
+      const { password, email } = createUserDto;
+
       // 1 Encriptar la contraseña
+      const newUser = new this.userModel({
+        password: bcryptjs.hashSync(password, 10),
+        email,
+      });
+
       // 2 Guardar el usuario
       // 3 Generar el JSON Web Token
-      return await newUser.save();
+      await newUser.save();
+      const { password: pass, ...user } = newUser.toJSON();
+      return user;
     } catch (error) {
       if (error instanceof MongoServerError && error.code === 11000) {
         throw new BadRequestException(`${createUserDto.email} already exists`);
