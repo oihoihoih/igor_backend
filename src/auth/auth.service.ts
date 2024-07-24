@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -6,10 +10,16 @@ import { Model } from 'mongoose';
 import { User } from './entities/user.entity';
 import { MongoServerError } from 'mongodb';
 import * as bcryptjs from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dto/login.dto';
+import { JwtPayload } from './interfaces/jwt-payload';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private jwtService: JwtService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
@@ -37,6 +47,29 @@ export class AuthService {
       }
     }
   }
+
+  async login(loginDto: LoginDto) {
+    // Usuario (email, _id)
+    const { email, password } = loginDto;
+
+    // Verificación mail
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new UnauthorizedException('Not valid credentials - email');
+    }
+
+    if (!bcryptjs.compareSync(password, user.password)) {
+      throw new UnauthorizedException('Not valid credentials - password');
+    }
+
+    const { password: _, ...rest } = user.toJSON();
+    return {
+      user: rest,
+      token: this.getJwtToken({ id: user.id }),
+    };
+    // Token de acceso
+  }
+
   findAll() {
     return `This action returns all auth`;
   }
@@ -51,5 +84,9 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+  getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 }
