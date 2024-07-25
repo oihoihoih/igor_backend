@@ -3,16 +3,15 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from './entities/user.entity';
 import { MongoServerError } from 'mongodb';
 import * as bcryptjs from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from './dto/login.dto';
+import { User } from './entities/user.entity';
+import { CreateUserDto, UpdateAuthDto, LoginDto, RegisterUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload';
+import { LoginResponse } from './interfaces/login-response';
 
 @Injectable()
 export class AuthService {
@@ -32,9 +31,11 @@ export class AuthService {
       });
 
       // 2 Guardar el usuario
-      // 3 Generar el JSON Web Token
       await newUser.save();
+
+      // 3 Generar el JSON Web Token
       const { password: pass, ...user } = newUser.toJSON();
+
       return user;
     } catch (error) {
       if (error instanceof MongoServerError && error.code === 11000) {
@@ -48,7 +49,16 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto) {
+  async register(registerDto: RegisterUserDto): Promise<LoginResponse> {
+    const user = await this.create(registerDto);
+
+    return {
+      user: user,
+      token: this.getJwtToken({ id: user._id }),
+    };
+  }
+
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
     // Usuario (email, _id)
     const { email, password } = loginDto;
 
@@ -65,7 +75,7 @@ export class AuthService {
     const { password: _, ...rest } = user.toJSON();
     return {
       user: rest,
-      token: this.getJwtToken({ id: user.id }),
+      token: this.getJwtToken({ id: user._id }),
     };
     // Token de acceso
   }
