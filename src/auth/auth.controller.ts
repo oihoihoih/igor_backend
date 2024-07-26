@@ -6,9 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginDto, RegisterUserDto, UpdateAuthDto } from './dto';
+import { AuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,9 +22,12 @@ export class AuthController {
     return this.authService.create(createUserDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
-  findAll() {
-    return this.authService.findAll();
+  findAll(@Request() req: Request) {
+    const user = req['user'];
+    return user;
+    // return this.authService.findAll();
   }
 
   @Get(':id')
