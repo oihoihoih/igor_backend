@@ -2,14 +2,18 @@ import {
   BadRequestException,
   Injectable,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import { MongoServerError } from 'mongodb';
+
 import * as bcryptjs from 'bcryptjs';
+import { RegisterUserDto, CreateUserDto, UpdateAuthDto, LoginDto } from './dto';
+
 import { User } from './entities/user.entity';
-import { CreateUserDto, UpdateAuthDto, LoginDto, RegisterUserDto } from './dto';
+
 import { JwtPayload } from './interfaces/jwt-payload';
 import { LoginResponse } from './interfaces/login-response';
 
@@ -101,6 +105,7 @@ export class AuthService {
   remove(id: number) {
     return `This action removes a #${id} auth`;
   }
+
   getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;

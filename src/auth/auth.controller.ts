@@ -24,20 +24,20 @@ export class AuthController {
     return this.authService.create(createUserDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
-  }
+  //   @Get(':id')
+  //   findOne(@Param('id') id: string) {
+  //     return this.authService.findOne(+id);
+  //   }
+  //
+  //   @Patch(':id')
+  //   update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
+  //     return this.authService.update(+id, updateAuthDto);
+  //   }
+  //
+  //   @Delete(':id')
+  //   remove(@Param('id') id: string) {
+  //     return this.authService.remove(+id);
+  //   }
 
   @Post('/login')
   login(@Body() loginDto: LoginDto) {
@@ -59,7 +59,7 @@ export class AuthController {
 
   // LoginResponse
   @UseGuards(AuthGuard)
-  @Get('check-token')
+  @Get('/check-token')
   checkToken(@Request() req: Request): LoginResponse {
     const user = req['user'] as User;
 
