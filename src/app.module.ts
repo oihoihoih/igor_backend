@@ -3,12 +3,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
     AuthModule,
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URI),
+    ProjectsModule,
   ],
   controllers: [],
   providers: [],
