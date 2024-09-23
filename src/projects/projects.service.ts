@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Model } from 'mongoose';
 import { Project } from './entities/project.entity';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class ProjectsService {
@@ -24,7 +25,8 @@ export class ProjectsService {
     return await this.projectModel.find().exec();
   }
 
-  async findOne(id: number): Promise<Project> {
+  // READ a project by id
+  async findOne(id: string): Promise<Project> {
     const projectExists = await this.projectModel.findById(id);
 
     if (!projectExists) {
@@ -33,13 +35,37 @@ export class ProjectsService {
     return projectExists;
   }
 
-  update(id: string, updateProjectDto: UpdateProjectDto) {
-    console.log(id);
-    console.log(updateProjectDto);
-    return `This action updates a #${id} project`;
+  // UPDATE a project by id
+  async update(
+    id: string,
+    updateProjectDto: UpdateProjectDto,
+  ): Promise<Project> {
+    try {
+      const updatedProject = await this.projectModel
+        .findByIdAndUpdate(id, updateProjectDto, {
+          new: true,
+        })
+        .exec();
+
+      if (!updatedProject) {
+        throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      return updatedProject;
+    } catch (error) {
+      // Manejo de errores adicionales si es necesario
+      throw new BadRequestException(
+        'An error occurred while updating the project',
+      );
+    }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} project`;
+  async remove(id: string) {
+    const projectExists = await this.projectModel.findById(id);
+
+    if (!projectExists) {
+      throw new Error('Proyecto no encontrado');
+    }
+    return await this.projectModel.findByIdAndDelete(id).exec();
   }
 }
