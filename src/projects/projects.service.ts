@@ -12,14 +12,16 @@ export class ProjectsService {
     @InjectModel(Project.name) private readonly projectModel: Model<Project>,
   ) {}
 
+  // CREATE a new project
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
     const newProject = new this.projectModel(createProjectDto);
 
     return await newProject.save();
   }
 
-  findAll() {
-    return `This action returns all projects`;
+  // READ all projects
+  async findAll(): Promise<Project[]> {
+    return await this.projectModel.find().exec();
   }
 
   async findOne(id: number): Promise<Project> {
@@ -31,11 +33,13 @@ export class ProjectsService {
     return projectExists;
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
+  update(id: string, updateProjectDto: UpdateProjectDto) {
+    console.log(id);
+    console.log(updateProjectDto);
     return `This action updates a #${id} project`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} project`;
   }
 }

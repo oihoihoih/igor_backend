@@ -1,10 +1,10 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString, IsUrl } from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
   title: string;
 
-  @IsString()
+  @IsNumber()
   year: number;
 
   @IsString()
@@ -14,8 +14,8 @@ export class CreateProjectDto {
   dop: string;
 
   @IsString()
-  cathegory: string;
+  category: string;
 
-  @IsString()
+  @IsUrl()
   img: string;
 }
