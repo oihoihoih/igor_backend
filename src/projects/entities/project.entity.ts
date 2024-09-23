@@ -8,7 +8,7 @@ export class Project {
   title: string;
 
   @Prop({ required: true })
-  year: number;
+  year: string;
 
   @Prop({ required: true })
   director: string;
