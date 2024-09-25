@@ -21,6 +21,9 @@ export class Project {
 
   @Prop({ required: true })
   img: string;
+
+  @Prop({ required: true })
+  trailerUrl: string;
 }
 
 export const ProjectSchema = SchemaFactory.createForClass(Project);

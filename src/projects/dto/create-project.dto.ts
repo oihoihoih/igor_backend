@@ -18,4 +18,7 @@ export class CreateProjectDto {
 
   @IsUrl()
   img: string;
+
+  @IsUrl()
+  trailerUrl: string;
 }
