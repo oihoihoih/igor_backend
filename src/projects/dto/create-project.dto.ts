@@ -1,4 +1,10 @@
-import { IsArray, IsNumber, IsString, IsUrl } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
@@ -19,6 +25,7 @@ export class CreateProjectDto {
   @IsUrl()
   img: string;
 
+  @IsOptional()
   @IsUrl()
   trailerUrl: string;
 }
