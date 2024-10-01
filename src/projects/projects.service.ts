@@ -56,6 +56,7 @@ export class ProjectsService {
       // Manejo de errores adicionales si es necesario
       throw new BadRequestException(
         'An error occurred while updating the project',
+        error.message,
       );
     }
   }
