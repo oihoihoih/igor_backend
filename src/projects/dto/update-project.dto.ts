@@ -18,8 +18,9 @@ export class UpdateProjectDto extends PartialType(CreateProjectDto) {
   @IsString()
   category: string;
 
-  @IsUrl()
-  img: string;
+  @IsOptional()
+  @IsString()
+  img?: string;
 
   @IsOptional()
   @IsUrl()

@@ -22,8 +22,9 @@ export class CreateProjectDto {
   @IsString()
   category: string;
 
-  @IsUrl()
-  img: string;
+  @IsOptional()
+  @IsString()
+  img?: string;
 
   @IsOptional()
   @IsUrl()

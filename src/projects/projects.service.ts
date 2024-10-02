@@ -61,6 +61,7 @@ export class ProjectsService {
     }
   }
 
+  // DELETE a project by id
   async remove(id: string) {
     const projectExists = await this.projectModel.findById(id);
 
@@ -68,5 +69,21 @@ export class ProjectsService {
       throw new Error('Proyecto no encontrado');
     }
     return await this.projectModel.findByIdAndDelete(id).exec();
+  }
+
+  // UPLOAD an image to a project
+  async uploadImage(body: any) {
+    const { id, img } = body;
+    const projectExists = await this.projectModel.findById(id);
+
+    if (!projectExists) {
+      throw new Error('Proyecto no encontrado');
+    }
+
+    return await this.projectModel.findByIdAndUpdate(
+      id,
+      { img },
+      { new: true },
+    );
   }
 }
