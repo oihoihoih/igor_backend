@@ -72,18 +72,31 @@ export class ProjectsService {
   }
 
   // UPLOAD an image to a project
-  async uploadImage(body: any) {
-    const { id, img } = body;
-    const projectExists = await this.projectModel.findById(id);
+  //   async uploadImage(body: any) {
+  //     const { id, img } = body;
+  //     const projectExists = await this.projectModel.findById(id);
+  //
+  //     if (!projectExists) {
+  //       throw new Error('Proyecto no encontrado');
+  //     }
+  //
+  //     return await this.projectModel.findByIdAndUpdate(
+  //       id,
+  //       { img },
+  //       { new: true },
+  //     );
+  //   }
 
-    if (!projectExists) {
-      throw new Error('Proyecto no encontrado');
+  async updateImage(id: string, imgPath: string): Promise<Project> {
+    const project = await this.projectModel.findById(id);
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${id} not found`);
     }
 
-    return await this.projectModel.findByIdAndUpdate(
-      id,
-      { img },
-      { new: true },
-    );
+    // Actualizar el campo 'img' con la ruta de la imagen
+    project.img = imgPath;
+
+    return await project.save();
   }
 }

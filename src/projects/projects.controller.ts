@@ -13,6 +13,7 @@ import {
   MaxFileSizeValidator,
   ParseFilePipeBuilder,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -55,29 +56,66 @@ export class ProjectsController {
   }
 
   // Add image to project
-  @Post('images/upload')
+  // @Post('images/upload')
+  // @UseInterceptors(
+  //   FileInterceptor('file', {
+  //     storage: diskStorage({
+  //       destination: '../igor_pf/src/assets/uploads',
+  //       filename: (req, file, cb) => {
+  //         cb(null, file.originalname);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // uploadFile(
+  //   @UploadedFile(
+  //     new ParseFilePipeBuilder()
+  //       .addFileTypeValidator({ fileType: '.(png|jpeg|jpg)' })
+  //       .addMaxSizeValidator({ maxSize: 1024 * 1024 * 4 })
+  //       .build({
+  //         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+  //         fileIsRequired: false,
+  //       }),
+  //   )
+  //   file: Express.Multer.File,
+  // ) {
+  //   console.log(file);
+  // }
+
+  @Post(':id/upload')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: '../igor_pf/src/assets/uploads',
+        destination: './uploads', // Carpeta donde se guardarán las imágenes
         filename: (req, file, cb) => {
-          cb(null, file.originalname);
+          // Puedes personalizar el nombre de la imagen para que sea único
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const extension = file.originalname.split('.').pop(); // Obtener extensión
+          const filename = `${file.fieldname}-${uniqueSuffix}.${extension}`;
+          cb(null, filename);
         },
       }),
     }),
   )
-  uploadFile(
+  async uploadFile(
+    @Param('id') id: string,
     @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: '.(png|jpeg|jpg)' })
-        .addMaxSizeValidator({ maxSize: 1024 * 1024 * 4 })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          fileIsRequired: false,
-        }),
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }), // Max 4MB
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
     )
     file: Express.Multer.File,
   ) {
-    console.log(file);
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    // Actualizar el proyecto con la ruta de la imagen
+    const imgPath = `/uploads/${file.filename}`; // Ruta relativa
+    return this.projectsService.updateImage(id, imgPath);
   }
 }
