@@ -4,6 +4,8 @@ import { ProjectsController } from './projects.controller';
 import { Project, ProjectSchema } from './entities/project.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { MulterModule } from '@nestjs/platform-express';
+
 @Module({
   controllers: [ProjectsController],
   providers: [ProjectsService],
@@ -15,6 +17,9 @@ import { MongooseModule } from '@nestjs/mongoose';
         schema: ProjectSchema,
       },
     ]),
+    MulterModule.register({
+      dest: './uploads', // Aquí defines dónde se guardarán los archivos
+    }),
   ],
 })
 export class ProjectsModule {}

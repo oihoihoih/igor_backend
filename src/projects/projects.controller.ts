@@ -8,11 +8,6 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
-  ParseFilePipe,
-  FileTypeValidator,
-  MaxFileSizeValidator,
-  ParseFilePipeBuilder,
-  HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
@@ -20,102 +15,87 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  // Create project
-  @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
-  }
-
-  // Get all projects
   @Get()
   findAll() {
     return this.projectsService.findAll();
   }
 
-  // Get project by id
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
   }
 
-  // Update project by id
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(id, updateProjectDto);
+  @UseInterceptors(FileInterceptor('img'))
+  async updateProject(
+    @Param('id') id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // Llama al servicio para actualizar el proyecto
+    const updatedProject = await this.projectsService.updateProject(
+      id,
+      updateProjectDto,
+      file,
+    );
+    return updatedProject;
   }
 
-  // Delete project by id
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.projectsService.remove(id);
   }
 
-  // Add image to project
-  // @Post('images/upload')
-  // @UseInterceptors(
-  //   FileInterceptor('file', {
-  //     storage: diskStorage({
-  //       destination: '../igor_pf/src/assets/uploads',
-  //       filename: (req, file, cb) => {
-  //         cb(null, file.originalname);
-  //       },
-  //     }),
-  //   }),
-  // )
-  // uploadFile(
-  //   @UploadedFile(
-  //     new ParseFilePipeBuilder()
-  //       .addFileTypeValidator({ fileType: '.(png|jpeg|jpg)' })
-  //       .addMaxSizeValidator({ maxSize: 1024 * 1024 * 4 })
-  //       .build({
-  //         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-  //         fileIsRequired: false,
-  //       }),
-  //   )
-  //   file: Express.Multer.File,
-  // ) {
-  //   console.log(file);
-  // }
+  @Post()
+  create(@Body() createProjectDto: CreateProjectDto) {
+    return this.projectsService.createProject(createProjectDto, null);
+  }
 
-  @Post(':id/upload')
+  @Post('/uploads')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads', // Carpeta donde se guardarán las imágenes
+        destination: './uploads',
         filename: (req, file, cb) => {
-          // Puedes personalizar el nombre de la imagen para que sea único
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const extension = file.originalname.split('.').pop(); // Obtener extensión
-          const filename = `${file.fieldname}-${uniqueSuffix}.${extension}`;
-          cb(null, filename);
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
+          cb(new BadRequestException('Only image files are allowed!'), false);
+        } else {
+          cb(null, true);
+        }
+      },
     }),
   )
   async uploadFile(
-    @Param('id') id: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }), // Max 4MB
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
   ) {
     if (!file) {
-      throw new BadRequestException('No file uploaded');
+      throw new BadRequestException('Image file is required');
     }
 
-    // Actualizar el proyecto con la ruta de la imagen
-    const imgPath = `/uploads/${file.filename}`; // Ruta relativa
-    return this.projectsService.updateImage(id, imgPath);
+    const createProjectDto: CreateProjectDto = {
+      title: body.title,
+      year: parseInt(body.year, 10),
+      director: body.director,
+      dop: body.dop,
+      category: body.category,
+      trailerUrl: body.trailerUrl,
+    };
+
+    return this.projectsService.createProject(createProjectDto, file);
   }
 }

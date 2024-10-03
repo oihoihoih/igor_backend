@@ -22,7 +22,6 @@ export class CreateProjectDto {
   @IsString()
   category: string;
 
-  @IsOptional()
   @IsString()
   img?: string;
 

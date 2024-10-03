@@ -19,7 +19,7 @@ export class Project {
   @Prop({ required: true })
   category: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   img: string;
 
   @Prop({ required: false })
